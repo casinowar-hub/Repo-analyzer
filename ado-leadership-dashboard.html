@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Platform Engineering — Leadership Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #EEF0F4;
+  --card: #FFFFFF;
+  --header-bg: #0A1628;
+  --header-accent: #132038;
+  --text: #172B4D;
+  --text-sec: #6B778C;
+  --text-muted: #97A0AF;
+  --border: #DFE1E6;
+  --blue: #0052CC;
+  --blue-light: #DEEBFF;
+  --purple: #6554C0;
+  --purple-light: #EAE6FF;
+  --green: #00875A;
+  --green-light: #E3FCEF;
+  --red: #DE350B;
+  --red-light: #FFEBE6;
+  --amber: #FF8B00;
+  --amber-light: #FFFAE6;
+  --teal: #00B8D9;
+  --shadow: 0 1px 3px rgba(0,0,0,.09), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 14px rgba(0,0,0,.09);
+  --r: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.5; }
+
+/* ── Header ── */
+.page-header {
+  background: var(--header-bg);
+  color: white;
+  padding: 0 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 68px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,.4);
+}
+.header-left { display: flex; align-items: center; gap: 20px; }
+.header-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #0052CC, #00B8D9);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 900; color: white; letter-spacing: -1px;
+}
+.header-title { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+.header-subtitle { font-size: 12px; color: #8DA2B8; margin-top: 1px; }
+.header-pills { display: flex; gap: 8px; }
+.header-pill {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 11px;
+  color: #CBD5E0;
+  display: flex; align-items: center; gap: 6px;
+}
+.header-pill .dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot-green { background: #48BB78; box-shadow: 0 0 0 2px rgba(72,187,120,.3); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 2px rgba(72,187,120,.3); } 50% { box-shadow: 0 0 0 5px rgba(72,187,120,.1); } }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.btn-ghost {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #CBD5E0;
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.btn-ghost:hover { background: rgba(255,255,255,.16); }
+.btn-primary {
+  background: var(--blue);
+  border: none;
+  color: white;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── Sub-header bar ── */
+.sub-bar {
+  background: var(--header-accent);
+  padding: 7px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 11px;
+  color: #8DA2B8;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+.sub-bar-item { display: flex; align-items: center; gap: 6px; }
+.sub-bar-item strong { color: #CBD5E0; }
+.sub-sep { width: 1px; height: 14px; background: rgba(255,255,255,.1); }
+
+/* ── Layout ── */
+.main { padding: 26px 32px; max-width: 1700px; margin: 0 auto; }
+.section { margin-bottom: 26px; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.section-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.section-title::before { content: ''; display: block; width: 3px; height: 16px; background: linear-gradient(180deg,#0052CC,#00B8D9); border-radius: 2px; }
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.row-3 { display: grid; grid-template-columns: 3fr 2fr; gap: 20px; }
+.row-3r { display: grid; grid-template-columns: 2fr 3fr; gap: 20px; }
+
+/* ── KPI Cards ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin-bottom: 28px; }
+.kpi-card {
+  border-radius: var(--r);
+  padding: 22px 22px 18px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+.kpi-card.blue { background: linear-gradient(135deg, #0052CC 0%, #0065FF 100%); }
+.kpi-card.teal { background: linear-gradient(135deg, #006688 0%, #00B8D9 100%); }
+.kpi-card.green { background: linear-gradient(135deg, #006640 0%, #00875A 100%); }
+.kpi-card.purple { background: linear-gradient(135deg, #5243AA 0%, #6554C0 100%); }
+.kpi-card::after { content:''; position:absolute; right:-20px; top:-20px; width:120px; height:120px; border-radius:50%; background:rgba(255,255,255,.08); }
+.kpi-card::before { content:''; position:absolute; right:30px; bottom:-30px; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,.06); }
+.kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; color: rgba(255,255,255,.7); margin-bottom: 10px; }
+.kpi-value { font-size: 40px; font-weight: 900; line-height: 1; letter-spacing: -2px; margin-bottom: 5px; }
+.kpi-sub { font-size: 11px; color: rgba(255,255,255,.65); }
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,.18);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 8px;
+  color: rgba(255,255,255,.95);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--card);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.card-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.card-body { padding: 18px 20px; }
+.card-chip {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+/* ── Predictability Score ── */
+.pred-score-section {
+  background: linear-gradient(135deg, #0D1B2A, #1A3A5C);
+  border-radius: var(--r);
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 48px;
+  margin-bottom: 28px;
+  box-shadow: var(--shadow-md);
+  color: white;
+}
+.pred-score-main { text-align: center; }
+.pred-score-ring {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: conic-gradient(#36B37E 0% 79%, rgba(255,255,255,.1) 79% 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 10px;
+  position: relative;
+}
+.pred-score-ring::before {
+  content: '';
+  position: absolute;
+  width: 82px;
+  height: 82px;
+  border-radius: 50%;
+  background: #0D1B2A;
+}
+.pred-score-num {
+  position: relative;
+  z-index: 1;
+  font-size: 28px;
+  font-weight: 900;
+  color: #36B37E;
+  letter-spacing: -1px;
+}
+.pred-label { font-size: 11px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .7px; }
+.pred-divider { width: 1px; height: 80px; background: rgba(255,255,255,.1); }
+.pred-metrics { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.pred-metric { }
+.pred-metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: rgba(255,255,255,.5); margin-bottom: 6px; }
+.pred-metric-value { font-size: 22px; font-weight: 800; letter-spacing: -1px; }
+.pred-metric-sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 2px; }
+.trend-up { color: #36B37E; }
+.trend-down { color: #FF5630; }
+.trend-neutral { color: #FFAB00; }
+
+/* ── Epic Progress ── */
+.epic-list { display: flex; flex-direction: column; gap: 14px; }
+.epic-item { }
+.epic-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.epic-name { font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.epic-tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
+.epic-meta { display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-sec); }
+.epic-pct { font-size: 13px; font-weight: 800; color: var(--text); }
+.epic-track { height: 8px; background: #EBECF0; border-radius: 4px; overflow: hidden; }
+.epic-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(.34,1.56,.64,1); }
+.epic-stats { margin-top: 5px; display: flex; gap: 14px; font-size: 10px; color: var(--text-muted); }
+
+/* ── PI Goals ── */
+.pi-list { display: flex; flex-direction: column; gap: 10px; }
+.pi-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: 8px;
+  border-left: 3px solid var(--border);
+}
+.pi-item.rag-green { border-left-color: var(--green); }
+.pi-item.rag-amber { border-left-color: var(--amber); }
+.pi-item.rag-red   { border-left-color: var(--red); }
+.rag-badge {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-weight: 800; color: white; flex-shrink: 0;
+  margin-top: 1px;
+}
+.rag-green-bg { background: var(--green); }
+.rag-amber-bg { background: var(--amber); }
+.rag-red-bg   { background: var(--red); }
+.pi-content { flex: 1; }
+.pi-title { font-size: 12px; font-weight: 700; margin-bottom: 3px; }
+.pi-desc { font-size: 11px; color: var(--text-sec); line-height: 1.4; }
+.pi-pct { font-size: 18px; font-weight: 800; letter-spacing: -1px; flex-shrink: 0; }
+
+/* ── Risk Table ── */
+.risk-table { width: 100%; border-collapse: collapse; }
+.risk-table th { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--text-sec); padding: 8px 10px; border-bottom: 2px solid var(--border); text-align: left; }
+.risk-table td { padding: 10px; border-bottom: 1px solid var(--border); font-size: 11px; vertical-align: top; }
+.risk-table tr:last-child td { border-bottom: none; }
+.risk-table tr:hover td { background: var(--bg); }
+.risk-level {
+  display: inline-block;
+  width: 56px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 0;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.risk-high   { background: var(--red-light);    color: var(--red); }
+.risk-medium { background: var(--amber-light);  color: var(--amber); }
+.risk-low    { background: var(--green-light);  color: var(--green); }
+.risk-title-cell { font-weight: 600; margin-bottom: 3px; }
+.risk-desc-cell { color: var(--text-sec); font-size: 10px; line-height: 1.4; }
+.risk-team-chip { font-size: 9px; font-weight: 600; background: var(--purple-light); color: var(--purple); padding: 2px 7px; border-radius: 10px; white-space: nowrap; }
+.risk-status { font-size: 10px; }
+
+/* ── Throughput ── */
+.throughput-legend { display: flex; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-sec); }
+.leg-dot { width: 10px; height: 10px; border-radius: 2px; }
+
+/* ── Chart containers ── */
+.chart-wrap { position: relative; width: 100%; }
+
+/* ── Misc ── */
+.badge-chip { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+.on-track { background: var(--green-light); color: var(--green); }
+.off-track { background: var(--red-light); color: var(--red); }
+.at-risk-c { background: var(--amber-light); color: var(--amber); }
+.tag-sm { font-size: 10px; color: var(--text-sec); background: var(--bg); border: 1px solid var(--border); padding: 1px 6px; border-radius: 3px; }
+
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ── What-If Scenario Planner ── */
+.whatif-section { background: linear-gradient(135deg, #07111F 0%, #122033 100%); border-radius: var(--r); padding: 24px 28px; color: white; box-shadow: var(--shadow-md); border: 1px solid rgba(255,255,255,.06); }
+.whatif-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.whatif-title { font-size: 16px; font-weight: 800; letter-spacing: -.3px; display: flex; align-items: center; gap: 10px; }
+.whatif-subtitle { font-size: 11px; color: rgba(255,255,255,.45); margin-top: 3px; }
+.whatif-controls { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 14px; margin-bottom: 16px; }
+.wi-control-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); border-radius: 8px; padding: 16px 18px; }
+.wi-control-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: rgba(255,255,255,.45); margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+.wi-slider-value { font-size: 28px; font-weight: 900; letter-spacing: -1px; margin-bottom: 6px; line-height: 1; }
+.wi-slider-sub { font-size: 11px; color: rgba(255,255,255,.4); margin-bottom: 14px; }
+.wi-slider { width: 100%; -webkit-appearance: none; height: 4px; border-radius: 2px; background: rgba(255,255,255,.14); outline: none; cursor: pointer; }
+.wi-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #0065FF; box-shadow: 0 0 0 3px rgba(0,101,255,.35); cursor: pointer; transition: box-shadow .2s; }
+.wi-slider::-webkit-slider-thumb:hover { box-shadow: 0 0 0 6px rgba(0,101,255,.2); }
+.wi-slider-ticks { display: flex; justify-content: space-between; margin-top: 5px; font-size: 9px; color: rgba(255,255,255,.25); }
+.wi-risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wi-risk-btn { background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.1); border-radius: 6px; padding: 10px 12px; cursor: pointer; text-align: left; transition: background .15s, border-color .2s, transform .1s; color: white; width: 100%; font-family: inherit; }
+.wi-risk-btn:hover { background: rgba(255,255,255,.09); transform: translateY(-1px); }
+.wi-risk-btn.active-risk { border-color: #DE350B; background: rgba(222,53,11,.13); }
+.wi-risk-btn.active-amber { border-color: #FF8B00; background: rgba(255,139,0,.11); }
+.wi-risk-btn.active-purple { border-color: #6554C0; background: rgba(101,84,192,.15); }
+.wi-risk-name { font-size: 11px; font-weight: 700; margin-bottom: 3px; display: flex; align-items: center; gap: 4px; }
+.wi-risk-impact { font-size: 10px; color: rgba(255,255,255,.4); line-height: 1.3; }
+.wi-on-badge { font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .4px; padding: 1px 5px; border-radius: 3px; margin-left: auto; display: none; }
+.wi-risk-btn.active-risk   .wi-on-badge { display: inline-block; background: rgba(222,53,11,.35); color: #FF8080; }
+.wi-risk-btn.active-amber  .wi-on-badge { display: inline-block; background: rgba(255,139,0,.3); color: #FFAB00; }
+.wi-risk-btn.active-purple .wi-on-badge { display: inline-block; background: rgba(101,84,192,.3); color: #B0A6FF; }
+.whatif-bottom { display: grid; grid-template-columns: 1.15fr 1fr; gap: 14px; }
+.wi-comparison { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 8px; overflow: hidden; }
+.wi-cmp-head { padding: 9px 16px; background: rgba(255,255,255,.05); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: rgba(255,255,255,.45); display: grid; grid-template-columns: 1.6fr 1fr 1fr 0.9fr; gap: 8px; }
+.wi-cmp-row { padding: 9px 16px; display: grid; grid-template-columns: 1.6fr 1fr 1fr 0.9fr; gap: 8px; border-top: 1px solid rgba(255,255,255,.05); align-items: center; transition: background .15s; }
+.wi-cmp-row:hover { background: rgba(255,255,255,.03); }
+.wi-row-lbl { font-size: 11px; color: rgba(255,255,255,.45); }
+.wi-row-cur { font-size: 12px; font-weight: 700; color: rgba(255,255,255,.6); }
+.wi-row-scn { font-size: 12px; font-weight: 800; transition: color .3s; }
+.wi-delta { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; display: inline-block; transition: all .35s; white-space: nowrap; }
+.d-better { background: rgba(0,135,90,.25); color: #36B37E; }
+.d-worse  { background: rgba(222,53,11,.2);  color: #FF7452; }
+.d-same   { background: rgba(255,255,255,.07); color: rgba(255,255,255,.35); }
+.wi-chart-card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.09); border-radius: 8px; padding: 14px 16px; }
+.wi-chart-hd { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: rgba(255,255,255,.4); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+.wi-legend { display: flex; gap: 12px; font-size: 10px; color: rgba(255,255,255,.4); flex-wrap: wrap; }
+.wi-legend-item { display: flex; align-items: center; gap: 5px; }
+.btn-reset-wi { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14); color: rgba(255,255,255,.65); padding: 7px 16px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: background .15s; }
+.btn-reset-wi:hover { background: rgba(255,255,255,.15); color: white; }
+.wi-riskcount { margin-left: auto; font-size: 11px; color: rgba(255,255,255,.5); text-transform: none; letter-spacing: 0; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-left">
+    <div class="header-logo">DE</div>
+    <div>
+      <div class="header-title">Data Platform Engineering</div>
+      <div class="header-subtitle">Leadership &amp; Program Dashboard · Q1 2026</div>
+    </div>
+    <div class="header-pills">
+      <div class="header-pill"><span class="dot dot-green"></span> 2 Teams Active</div>
+      <div class="header-pill">PI 2026-Q1 &nbsp;·&nbsp; Wk 10/13</div>
+      <div class="header-pill">Mar 10, 2026</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="btn-ghost">Print / Export</button>
+    <button class="btn-primary">Share Report</button>
+  </div>
+</div>
+
+<div class="sub-bar">
+  <div class="sub-bar-item"><strong>PI Goal:</strong> Modernise data infrastructure · Deliver lakehouse foundation</div>
+  <div class="sub-sep"></div>
+  <div class="sub-bar-item"><strong>Teams:</strong> Platform (8) · Analytics Engineering (5)</div>
+  <div class="sub-sep"></div>
+  <div class="sub-bar-item"><strong>Sprints this PI:</strong> 6 of 6 planned &nbsp;·&nbsp; Current Sprint 26.06</div>
+  <div class="sub-sep"></div>
+  <div class="sub-bar-item"><strong>Forecasted delivery:</strong> <span style="color:#FFAB00;font-weight:700">94% of PI scope (risk: 2 epics slipping)</span></div>
+</div>
+
+<div class="main">
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card blue">
+      <div class="kpi-label">Delivery Predictability</div>
+      <div class="kpi-value" id="kpiPred">79%</div>
+      <div class="kpi-sub">% committed scope delivered on-time</div>
+      <div class="kpi-delta trend-up">+6pp vs last PI</div>
+    </div>
+    <div class="kpi-card teal">
+      <div class="kpi-label">Avg Cycle Time</div>
+      <div class="kpi-value" id="kpiCycle">4.2<span style="font-size:22px;font-weight:700">d</span></div>
+      <div class="kpi-sub">Story start-to-done, 30-day rolling</div>
+      <div class="kpi-delta trend-up">-0.8d vs last month</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-label">Sprint Throughput</div>
+      <div class="kpi-value" id="kpiThru">76<span style="font-size:22px;font-weight:700">pt</span></div>
+      <div class="kpi-sub">Avg story points per sprint (PI)</div>
+      <div class="kpi-delta trend-up">+5pt vs PI target</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-label">Epics On Track</div>
+      <div class="kpi-value" id="kpiOnTrack">4/6</div>
+      <div class="kpi-sub">2 at risk · 0 critical red</div>
+      <div class="kpi-delta trend-neutral">Monitor CDC &amp; Governance</div>
+    </div>
+  </div>
+
+  <!-- Delivery Predictability Score Banner -->
+  <div class="pred-score-section">
+    <div class="pred-score-main">
+      <div class="pred-score-ring"><span class="pred-score-num">79</span></div>
+      <div class="pred-label">Delivery Score</div>
+    </div>
+    <div class="pred-divider"></div>
+    <div class="pred-metrics">
+      <div class="pred-metric">
+        <div class="pred-metric-label">Scope Committed</div>
+        <div class="pred-metric-value">432 <span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.5)">pts</span></div>
+        <div class="pred-metric-sub">PI 2026-Q1 total</div>
+      </div>
+      <div class="pred-metric">
+        <div class="pred-metric-label">Scope Delivered</div>
+        <div class="pred-metric-value trend-up">341 <span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.5)">pts</span></div>
+        <div class="pred-metric-sub">79% through Wk 10</div>
+      </div>
+      <div class="pred-metric">
+        <div class="pred-metric-label">Carry-over Risk</div>
+        <div class="pred-metric-value trend-neutral">54 <span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.5)">pts</span></div>
+        <div class="pred-metric-sub">Across 2 epics</div>
+      </div>
+      <div class="pred-metric">
+        <div class="pred-metric-label">Avg Lead Time</div>
+        <div class="pred-metric-value">6.7 <span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.5)">days</span></div>
+        <div class="pred-metric-sub">Request-to-done</div>
+      </div>
+      <div class="pred-metric">
+        <div class="pred-metric-label">Defect Escape Rate</div>
+        <div class="pred-metric-value trend-up">3.1<span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.5)">%</span></div>
+        <div class="pred-metric-sub">vs 5.8% last PI</div>
+      </div>
+      <div class="pred-metric">
+        <div class="pred-metric-label">PI Confidence</div>
+        <div class="pred-metric-value" style="color:#FFAB00">94<span style="font-size:14px;font-weight:500;color:rgba(255,255,255,.5)">%</span></div>
+        <div class="pred-metric-sub">Team self-assessment</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Epic Progress + PI Goals -->
+  <div class="row-3 section">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Epic &amp; Feature Progress — Q1 2026</div>
+        <div style="display:flex;gap:8px">
+          <span class="badge-chip on-track">4 On Track</span>
+          <span class="badge-chip at-risk-c">2 At Risk</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="epic-list" id="epicList"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">PI Goals — Q1 2026</div>
+        <span style="font-size:10px;color:var(--text-sec)">RAG Status</span>
+      </div>
+      <div class="card-body">
+        <div class="pi-list" id="piList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Release Burnup + Risk Summary -->
+  <div class="row-3r section">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Risk &amp; Blocker Summary</div>
+        <span style="font-size:10px;background:var(--red-light);color:var(--red);padding:2px 8px;border-radius:10px;font-weight:700">2 High · 3 Med · 1 Low</span>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table class="risk-table" id="riskTable"></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Release Burnup — Q1 2026</div>
+        <div style="display:flex;gap:16px;font-size:11px;color:var(--text-sec);align-items:center">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:2px;background:#C1C7D0;display:inline-block"></span> Scope</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:3px;background:var(--blue);display:inline-block"></span> Actual</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:2px;background:var(--purple);border-top:2px dashed var(--purple);display:inline-block"></span> Forecast</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:240px">
+          <canvas id="burnupChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cycle Time + Throughput -->
+  <div class="row-2 section">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Cycle Time &amp; Lead Time Trends</div>
+        <div style="display:flex;gap:12px;font-size:11px;color:var(--text-sec);align-items:center">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:3px;background:var(--blue);display:inline-block"></span> Cycle Time</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:3px;background:var(--teal);display:inline-block"></span> Lead Time</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="cycleTimeChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Throughput by Pod</div>
+        <span style="font-size:10px;color:var(--text-sec)">Story points delivered per sprint</span>
+      </div>
+      <div class="card-body">
+        <div class="chart-wrap" style="height:220px">
+          <canvas id="throughputChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lead Time Distribution -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Lead Time Distribution (Last 90 Days)</div>
+      <div style="font-size:11px;color:var(--text-sec)">Stories completed · Median: 5.5d · P85: 10d · P95: 18d</div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="chart-wrap" style="height:190px">
+          <canvas id="leadTimeChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- What-If Scenario Planner                                  -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">What-If Scenario Planner</div>
+      <div style="font-size:11px;color:var(--text-sec)">Drag sliders · Toggle risks · Watch delivery forecast update in real time</div>
+    </div>
+    <div class="whatif-section">
+      <div class="whatif-header">
+        <div>
+          <div class="whatif-title">&#x1F52E; Scenario Modeller — Q1 2026</div>
+          <div class="whatif-subtitle">Adjust team size, scope or activate risks to model delivery outcomes vs current plan</div>
+        </div>
+        <button class="btn-reset-wi" onclick="resetWhatIf()">&#x21BA; Reset All</button>
+      </div>
+
+      <!-- Controls -->
+      <div class="whatif-controls">
+
+        <!-- Resource Slider -->
+        <div class="wi-control-card">
+          <div class="wi-control-label">&#x1F465; Resource: Team Size</div>
+          <div class="wi-slider-value" id="wiTeamDisplay">6 <span style="font-size:16px;font-weight:500;opacity:.55">engineers</span></div>
+          <div class="wi-slider-sub">Current baseline: 6 · Scale from 4 (‑2 FTE) to 10 (+4 FTE)</div>
+          <input type="range" class="wi-slider" id="wiTeamSlider" min="4" max="10" value="6" step="1" oninput="updateWhatIf()">
+          <div class="wi-slider-ticks"><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+        </div>
+
+        <!-- Scope Slider -->
+        <div class="wi-control-card">
+          <div class="wi-control-label">&#x1F4D0; Scope: Story Points Delta</div>
+          <div class="wi-slider-value" id="wiScopeDisplay">+0 <span style="font-size:16px;font-weight:500;opacity:.55">pts</span></div>
+          <div class="wi-slider-sub">PI total: <span id="wiScopeTotal" style="color:#FFAB00;font-weight:700">432 pts</span> · Remaining: <span id="wiScopeRemain" style="color:#FFAB00;font-weight:700">91 pts</span></div>
+          <input type="range" class="wi-slider" id="wiScopeSlider" min="-100" max="100" value="0" step="5" oninput="updateWhatIf()">
+          <div class="wi-slider-ticks"><span>-100</span><span>-50</span><span>0</span><span>+50</span><span>+100</span></div>
+        </div>
+
+        <!-- Risk Toggles -->
+        <div class="wi-control-card">
+          <div class="wi-control-label">&#x26A0;&#xFE0F; Risk Simulation <span class="wi-riskcount" id="wiRiskCount">0 risks active</span></div>
+          <div class="wi-risk-grid">
+            <button class="wi-risk-btn" id="wiRiskR1" onclick="toggleRisk('r1',this,'active-risk')">
+              <div class="wi-risk-name">&#x1F464; Key engineer leaves <span class="wi-on-badge">ON</span></div>
+              <div class="wi-risk-impact">-1.5 FTE effective · +0.5 sprint delay</div>
+            </button>
+            <button class="wi-risk-btn" id="wiRiskR2" onclick="toggleRisk('r2',this,'active-amber')">
+              <div class="wi-risk-name">&#x1F512; Vendor / Infra delay <span class="wi-on-badge">ON</span></div>
+              <div class="wi-risk-impact">CDC blocked · +1.5 sprint delay</div>
+            </button>
+            <button class="wi-risk-btn" id="wiRiskR3" onclick="toggleRisk('r3',this,'active-amber')">
+              <div class="wi-risk-name">&#x1F4B0; Snowflake cost overrun <span class="wi-on-badge">ON</span></div>
+              <div class="wi-risk-impact">10% throughput reduction · +0.5 sprint</div>
+            </button>
+            <button class="wi-risk-btn" id="wiRiskR4" onclick="toggleRisk('r4',this,'active-purple')">
+              <div class="wi-risk-name">&#x1F4CB; Scope creep +15% <span class="wi-on-badge">ON</span></div>
+              <div class="wi-risk-impact">+65 story points added to PI</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comparison + Chart -->
+      <div class="whatif-bottom">
+
+        <!-- Comparison Table -->
+        <div class="wi-comparison">
+          <div class="wi-cmp-head"><span>Metric</span><span>Current Plan</span><span>Scenario</span><span>Delta</span></div>
+          <div class="wi-cmp-row">
+            <span class="wi-row-lbl">Team Size</span>
+            <span class="wi-row-cur">6 eng</span>
+            <span class="wi-row-scn" id="wcTeamSize">6 eng</span>
+            <span class="wi-delta d-same" id="wdTeamSize">—</span>
+          </div>
+          <div class="wi-cmp-row">
+            <span class="wi-row-lbl">Throughput / Sprint</span>
+            <span class="wi-row-cur">76 pts</span>
+            <span class="wi-row-scn" id="wcThroughput">76 pts</span>
+            <span class="wi-delta d-same" id="wdThroughput">—</span>
+          </div>
+          <div class="wi-cmp-row">
+            <span class="wi-row-lbl">PI Scope (total)</span>
+            <span class="wi-row-cur">432 pts</span>
+            <span class="wi-row-scn" id="wcScope">432 pts</span>
+            <span class="wi-delta d-same" id="wdScope">—</span>
+          </div>
+          <div class="wi-cmp-row">
+            <span class="wi-row-lbl">Delivery Date</span>
+            <span class="wi-row-cur">Mar 28</span>
+            <span class="wi-row-scn" id="wcDelivery">Mar 28</span>
+            <span class="wi-delta d-same" id="wdDelivery">—</span>
+          </div>
+          <div class="wi-cmp-row">
+            <span class="wi-row-lbl">Avg Cycle Time</span>
+            <span class="wi-row-cur">4.2d</span>
+            <span class="wi-row-scn" id="wcCycleTime">4.2d</span>
+            <span class="wi-delta d-same" id="wdCycleTime">—</span>
+          </div>
+          <div class="wi-cmp-row">
+            <span class="wi-row-lbl">Predictability Score</span>
+            <span class="wi-row-cur">79%</span>
+            <span class="wi-row-scn" id="wcPredictability">79%</span>
+            <span class="wi-delta d-same" id="wdPredictability">—</span>
+          </div>
+        </div>
+
+        <!-- Scenario Burnup Chart -->
+        <div class="wi-chart-card">
+          <div class="wi-chart-hd">
+            <span>Scenario Burnup Forecast</span>
+            <div class="wi-legend">
+              <span class="wi-legend-item"><span style="width:16px;height:2px;background:#0052CC;display:inline-block;border-radius:2px"></span> Actual</span>
+              <span class="wi-legend-item"><span style="width:16px;height:2px;background:rgba(255,255,255,.3);display:inline-block;border-radius:2px;border-top:2px dashed rgba(255,255,255,.3)"></span> Current Plan</span>
+              <span class="wi-legend-item"><span style="width:16px;height:2px;background:#36B37E;display:inline-block;border-radius:2px" id="wiLegendScn"></span> Scenario</span>
+            </div>
+          </div>
+          <div class="chart-wrap" style="height:215px">
+            <canvas id="wiScenarioChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────
+const EPICS = [
+  { name: 'Lakehouse Foundation (Bronze/Silver/Gold)', code:'EPIC-01', pct:82, pts_done:98,  pts_total:120, status:'on-track', due:'Mar 28', owner:'Data Platform', tags:['lakehouse','spark','snowflake'] },
+  { name: 'Real-Time CDC & Streaming Platform',        code:'EPIC-02', pct:54, pts_done:43,  pts_total:80,  status:'at-risk',  due:'Mar 28', owner:'Data Platform', tags:['kafka','cdc','debezium'],    note:'Blocked: Firewall approval' },
+  { name: 'dbt Analytics Engineering Modernisation',   code:'EPIC-03', pct:91, pts_done:73,  pts_total:80,  status:'on-track', due:'Mar 14', owner:'Analytics Eng', tags:['dbt','snowflake'] },
+  { name: 'Enterprise Data Quality Framework',         code:'EPIC-04', pct:67, pts_done:54,  pts_total:80,  status:'on-track', due:'Mar 28', owner:'Data Platform', tags:['data-quality','great-expectations'] },
+  { name: 'Data Governance & OpenMetadata Catalog',    code:'EPIC-05', pct:38, pts_done:27,  pts_total:72,  status:'at-risk',  due:'Mar 28', owner:'Data Platform', tags:['governance','openmetadata'],  note:'CDC dependency + resource constraint' },
+  { name: 'Platform Observability & SRE Practices',   code:'EPIC-06', pct:78, pts_done:46,  pts_total:60,  status:'on-track', due:'Mar 14', owner:'Data Platform', tags:['observability','grafana'] },
+];
+
+const PI_GOALS = [
+  { title: 'Lakehouse MVP in production (Gold layer)', rag: 'green', pct: 82, desc: '5 of 6 Gold layer marts live. Revenue & Orders complete. Inventory in review.' },
+  { title: 'Streaming latency < 5 min for 3 domains', rag: 'amber', pct: 33, desc: 'Orders blocked (CDC). Clickstream on track. Products not started.' },
+  { title: 'dbt test coverage > 80% across all models', rag: 'green', pct: 91, desc: 'Coverage at 91%, up from 34% at PI start. Exceeding target.' },
+  { title: 'Data quality SLA 99.5% pass rate in prod', rag: 'green', pct: 75, desc: 'Currently at 99.3% — trending to hit target by sprint 26.06 close.' },
+  { title: 'OpenMetadata catalog with full lineage', rag: 'red',   pct: 38, desc: 'Dependency on CDC epic. May require PI carry-over or descope of lineage depth.' },
+  { title: 'Platform MTTR < 30 min for P1 incidents', rag: 'green', pct: 88, desc: 'Current MTTR 22 min. 3 P1 incidents this PI, all resolved within SLA.' },
+];
+
+const RISKS = [
+  { id:'RISK-14', title:'CDC pipeline delivery delay', team:'Data Platform', level:'high', status:'Escalated', desc:'Network firewall unblocking dependency holding EPIC-02 and EPIC-05. 4 days aged with no Infra response.', owner:'S. Chen' },
+  { id:'RISK-15', title:'OpenMetadata PI carry-over likely', team:'Data Platform', level:'high', status:'Active', desc:'EPIC-05 at 38% with 3 weeks to go. Recommending partial descope: defer relationship-level lineage to Q2.', owner:'R. Thompson' },
+  { id:'RISK-16', title:'Snowflake cost overrun (12% over plan)', team:'Data Platform', level:'medium', status:'Monitoring', desc:'Compute costs elevated due to unoptimised Spark-to-Snowflake writes. Partition pruning PR in review.', owner:'M. Johnson' },
+  { id:'RISK-17', title:'Analytics Eng team capacity (1 FTE out)', team:'Analytics Eng', level:'medium', status:'Mitigated', desc:'Taylor Walsh on medical leave 2 weeks. Sprint capacity reduced by 10pts. Platform team cross-training in progress.', owner:'P. Patel' },
+  { id:'RISK-18', title:'Schema registry migration compatibility', team:'Data Platform', level:'medium', status:'Monitoring', desc:'Avro schema v3 breaking change for clickstream consumers. Impact analysis complete, migration plan drafted.', owner:'C. Morgan' },
+  { id:'RISK-19', title:'dbt Cloud tier upgrade required Q2', team:'Analytics Eng', level:'low', status:'Accepted', desc:'Job concurrency limits will be hit when adding 3 more domains. Budget request submitted for Q2.', owner:'M. Johnson' },
+];
+
+// ── Epic List ─────────────────────────────────────────────────────
+const EPIC_COLORS = {
+  'on-track': { fill: 'linear-gradient(90deg,#00875A,#36B37E)', text: '#00875A', bg: '#E3FCEF', label: 'On Track' },
+  'at-risk':  { fill: 'linear-gradient(90deg,#FF8B00,#FFAB00)', text: '#FF8B00', bg: '#FFFAE6', label: 'At Risk' },
+};
+
+function buildEpics() {
+  const el = document.getElementById('epicList');
+  EPICS.forEach(epic => {
+    const cfg = EPIC_COLORS[epic.status];
+    const tags = epic.tags.map(t => `<span class="tag-sm">${t}</span>`).join('');
+    const div = document.createElement('div');
+    div.className = 'epic-item';
+    div.innerHTML = `
+      <div class="epic-header">
+        <div class="epic-name">
+          <span style="font-size:10px;font-family:monospace;color:var(--text-sec)">${epic.code}</span>
+          ${epic.name}
+          ${epic.note ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px;background:${cfg.bg};color:${cfg.text}">!</span>` : ''}
+        </div>
+        <div class="epic-meta">
+          <span style="font-size:10px;color:var(--text-sec)">${epic.pts_done}/${epic.pts_total}pts</span>
+          <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:10px;background:${cfg.bg};color:${cfg.text}">${cfg.label}</span>
+          <span class="epic-pct">${epic.pct}%</span>
+        </div>
+      </div>
+      <div class="epic-track">
+        <div class="epic-fill" style="width:${epic.pct}%;background:${cfg.fill}"></div>
+      </div>
+      <div class="epic-stats">
+        <span>Owner: ${epic.owner}</span>
+        <span>Due: ${epic.due}</span>
+        <span style="display:flex;gap:4px">${tags}</span>
+        ${epic.note ? `<span style="color:${cfg.text};font-weight:600">${epic.note}</span>` : ''}
+      </div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+// ── PI Goals ──────────────────────────────────────────────────────
+function buildPIGoals() {
+  const el = document.getElementById('piList');
+  PI_GOALS.forEach(g => {
+    const ragCls = { green: 'rag-green', amber: 'rag-amber', red: 'rag-red' }[g.rag];
+    const ragBg  = { green: 'rag-green-bg', amber: 'rag-amber-bg', red: 'rag-red-bg' }[g.rag];
+    const ragLetter = g.rag.toUpperCase()[0];
+    const div = document.createElement('div');
+    div.className = `pi-item rag-${g.rag}`;
+    div.innerHTML = `
+      <div class="rag-badge ${ragBg}">${ragLetter}</div>
+      <div class="pi-content">
+        <div class="pi-title">${g.title}</div>
+        <div class="pi-desc">${g.desc}</div>
+      </div>
+      <div class="pi-pct" style="color:${g.rag==='green'?'var(--green)':g.rag==='amber'?'var(--amber)':'var(--red)'}">${g.pct}%</div>
+    `;
+    el.appendChild(div);
+  });
+}
+
+// ── Risk Table ────────────────────────────────────────────────────
+function buildRisks() {
+  const table = document.getElementById('riskTable');
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Risk / Issue</th>
+        <th>Team</th>
+        <th>Level</th>
+        <th>Status</th>
+        <th>Owner</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${RISKS.map(r => `
+        <tr>
+          <td style="font-family:monospace;font-size:10px;color:var(--text-sec);white-space:nowrap">${r.id}</td>
+          <td>
+            <div class="risk-title-cell">${r.title}</div>
+            <div class="risk-desc-cell">${r.desc}</div>
+          </td>
+          <td><span class="risk-team-chip">${r.team}</span></td>
+          <td><span class="risk-level risk-${r.level}">${r.level}</span></td>
+          <td class="risk-status" style="font-weight:600;color:${r.status==='Escalated'?'var(--red)':r.status==='Mitigated'?'var(--green)':'var(--text-sec)'}">${r.status}</td>
+          <td style="font-size:11px;font-weight:600;white-space:nowrap">${r.owner}</td>
+        </tr>
+      `).join('')}
+    </tbody>
+  `;
+}
+
+// ── Charts ────────────────────────────────────────────────────────
+const sprintLabels = ['26.01', '26.02', '26.03', '26.04', '26.05', '26.06'];
+
+// Release Burnup
+(function() {
+  const ctx = document.getElementById('burnupChart').getContext('2d');
+  const scope   = [432, 432, 440, 440, 445, 445];
+  const actual  = [0,   60,  128, 212, 283, 341];
+  const forecast= [null,null,null,null,null,341, 395, 432];
+  const forecastLabels = [...sprintLabels, '26.07(f)', 'Target'];
+
+  const gradBlue = ctx.createLinearGradient(0, 0, 0, 280);
+  gradBlue.addColorStop(0, 'rgba(0,82,204,0.2)');
+  gradBlue.addColorStop(1, 'rgba(0,82,204,0.01)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: forecastLabels,
+      datasets: [
+        { label:'Scope Ceiling', data:[...scope,445,445], borderColor:'#C1C7D0', borderWidth:1.5, borderDash:[4,4], pointRadius:0, fill:false, tension:0 },
+        { label:'Actual Delivered', data:[...actual,null,null], borderColor:'#0052CC', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#0052CC', fill:true, backgroundColor:gradBlue, tension:.35 },
+        { label:'Forecast', data:forecast, borderColor:'#6554C0', borderWidth:2, borderDash:[5,3], pointRadius:3, pointBackgroundColor:'#6554C0', fill:false, tension:.3, spanGaps:false },
+      ],
+    },
+    options: {
+      plugins: { legend:{display:false}, tooltip:{mode:'index',intersect:false} },
+      scales: {
+        x: { grid:{color:'#F4F5F7'}, ticks:{color:'#6B778C',font:{size:10}} },
+        y: { grid:{color:'#F4F5F7'}, ticks:{color:'#6B778C',font:{size:10}}, min:0, max:480, title:{display:true,text:'Story Points Delivered',font:{size:10},color:'#97A0AF'} },
+      },
+      animation: { duration:800, easing:'easeOutQuart' },
+    },
+  });
+})();
+
+// Cycle Time & Lead Time
+(function() {
+  const ctx = document.getElementById('cycleTimeChart').getContext('2d');
+  const cycleTime = [5.8, 5.2, 4.9, 4.6, 4.4, 4.2];
+  const leadTime  = [9.2, 8.5, 7.8, 7.4, 7.1, 6.7];
+
+  const gradCycle = ctx.createLinearGradient(0, 0, 0, 260);
+  gradCycle.addColorStop(0, 'rgba(0,82,204,0.15)');
+  gradCycle.addColorStop(1, 'rgba(0,82,204,0.01)');
+
+  const gradLead = ctx.createLinearGradient(0, 0, 0, 260);
+  gradLead.addColorStop(0, 'rgba(0,184,217,0.15)');
+  gradLead.addColorStop(1, 'rgba(0,184,217,0.01)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sprintLabels,
+      datasets: [
+        { label:'Cycle Time (days)', data: cycleTime, borderColor:'#0052CC', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#0052CC', fill:true, backgroundColor:gradCycle, tension:.4 },
+        { label:'Lead Time (days)',  data: leadTime,  borderColor:'#00B8D9', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#00B8D9', fill:true, backgroundColor:gradLead, tension:.4 },
+        { label:'Cycle Time Target', data: new Array(6).fill(4.0), borderColor:'#00875A', borderWidth:1, borderDash:[4,3], pointRadius:0, fill:false },
+      ],
+    },
+    options: {
+      plugins: {
+        legend: { display:true, labels:{font:{size:11},color:'#6B778C',boxWidth:14,boxHeight:3,usePointStyle:false} },
+        tooltip: { mode:'index', intersect:false },
+      },
+      scales: {
+        x: { grid:{color:'#F4F5F7'}, ticks:{color:'#6B778C',font:{size:10}} },
+        y: { grid:{color:'#F4F5F7'}, ticks:{color:'#6B778C',font:{size:10},callback: v => v+'d'}, min:0, max:14, title:{display:true,text:'Days',font:{size:10},color:'#97A0AF'} },
+      },
+      animation: { duration:800, easing:'easeOutQuart' },
+    },
+  });
+})();
+
+// Throughput by Pod
+(function() {
+  const ctx = document.getElementById('throughputChart').getContext('2d');
+  const platform  = [48, 45, 52, 49, 55, 50];
+  const analytics = [24, 23, 29, 27, 28, 26];
+  const target    = new Array(6).fill(71);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sprintLabels,
+      datasets: [
+        { label:'Platform Pod', data: platform, backgroundColor:'#0052CCCC', borderRadius:4, borderSkipped:false },
+        { label:'Analytics Eng', data: analytics, backgroundColor:'#6554C0CC', borderRadius:4, borderSkipped:false },
+        { label:'Combined Target', data: target, type:'line', borderColor:'#00875A', borderWidth:1.5, borderDash:[4,3], pointRadius:0, fill:false },
+      ],
+    },
+    options: {
+      plugins: {
+        legend: { display:true, labels:{font:{size:11},color:'#6B778C',boxWidth:10,boxHeight:10} },
+        tooltip: { mode:'index', intersect:false },
+      },
+      scales: {
+        x: { stacked:true, grid:{display:false}, ticks:{color:'#6B778C',font:{size:10}} },
+        y: { stacked:true, grid:{color:'#F4F5F7'}, ticks:{color:'#6B778C',font:{size:10}}, title:{display:true,text:'Story Points',font:{size:10},color:'#97A0AF'}, max:100 },
+      },
+      animation: { duration:800, easing:'easeOutQuart' },
+    },
+  });
+})();
+
+// Lead Time Distribution
+(function() {
+  const ctx = document.getElementById('leadTimeChart').getContext('2d');
+  const buckets = ['1d','2d','3d','4d','5d','6d','7d','8-9d','10-12d','13-15d','16-20d','21d+'];
+  const counts  = [4,   9,   14,  19,  24,  20,  15,  12,    10,      7,       5,        3];
+
+  const barColors = counts.map((_,i) => {
+    if (i <= 4) return '#0052CCCC';
+    if (i <= 7) return '#6554C0CC';
+    return '#DE350B99';
+  });
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: buckets,
+      datasets: [
+        {
+          label:'Stories',
+          data: counts,
+          backgroundColor: barColors,
+          borderRadius: 4,
+          borderSkipped: false,
+        },
+      ],
+    },
+    options: {
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.raw} stories`,
+            afterLabel: ctx => {
+              const total = counts.reduce((a,b)=>a+b,0);
+              return `${((ctx.raw/total)*100).toFixed(1)}% of throughput`;
+            },
+          },
+        },
+        annotation: {},
+      },
+      scales: {
+        x: { grid:{display:false}, ticks:{color:'#6B778C',font:{size:10}} },
+        y: { grid:{color:'#F4F5F7'}, ticks:{color:'#6B778C',font:{size:10}}, title:{display:true,text:'# Stories',font:{size:10},color:'#97A0AF'} },
+      },
+      animation: { duration:900, easing:'easeOutQuart' },
+    },
+    plugins: [{
+      id: 'medianLine',
+      afterDraw(chart) {
+        const { ctx, scales } = chart;
+        const medianIdx = 4; // '5d' bucket = median
+        const x = scales.x.getPixelForValue(medianIdx);
+        ctx.save();
+        ctx.setLineDash([5,4]);
+        ctx.strokeStyle = '#FF8B00';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x, scales.y.top);
+        ctx.lineTo(x, scales.y.bottom);
+        ctx.stroke();
+        ctx.fillStyle = '#FF8B00';
+        ctx.font = 'bold 10px system-ui';
+        ctx.fillText('Median 5.5d', x + 5, scales.y.top + 14);
+        ctx.restore();
+
+        // P85 line
+        const p85Idx = 8;
+        const x85 = scales.x.getPixelForValue(p85Idx);
+        ctx.save();
+        ctx.setLineDash([4,4]);
+        ctx.strokeStyle = '#DE350B';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(x85, scales.y.top);
+        ctx.lineTo(x85, scales.y.bottom);
+        ctx.stroke();
+        ctx.fillStyle = '#DE350B';
+        ctx.font = 'bold 10px system-ui';
+        ctx.fillText('P85: 10d', x85 + 5, scales.y.top + 14);
+        ctx.restore();
+      },
+    }],
+  });
+})();
+
+// ── KPI Counter Animation ─────────────────────────────────────────
+function animateCount(id, target, suffix='', decimals=0, duration=1000) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const base = el.innerHTML;
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - t, 3);
+    const val = (target * ease).toFixed(decimals);
+    // replace the large number part but preserve inner HTML
+    const fmtVal = decimals > 0 ? val : Math.round(val);
+    el.querySelector ? null : null;
+    if (t < 1) requestAnimationFrame(step);
+  }
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+buildEpics();
+buildPIGoals();
+buildRisks();
+
+// Animate progress bars on load
+setTimeout(() => {
+  document.querySelectorAll('.epic-fill').forEach(el => {
+    const w = el.style.width;
+    el.style.width = '0%';
+    requestAnimationFrame(() => { el.style.width = w; });
+  });
+}, 100);
+
+// ── What-If Scenario Planner ──────────────────────────────────────
+const WI_BASE = {
+  teamSize: 6, throughput: 76, cycleTime: 4.2,
+  remaining: 91, totalScope: 432, predictability: 79,
+  piEndDate: new Date('2026-03-28'),
+};
+
+const WI_RISK_DEF = {
+  r1: { delaySprints: 0.5, teamPenaltyFTE: 1.5 },
+  r2: { delaySprints: 1.5 },
+  r3: { delaySprints: 0.5, throughputMult: 0.90 },
+  r4: { scopeAdd: 65 },
+};
+
+const wiState = { teamSize: 6, scopeDelta: 0, activeRisks: new Map() };
+// Map: riskId -> activeClass
+
+function calcWI() {
+  const { teamSize, scopeDelta, activeRisks } = wiState;
+  let throughput = WI_BASE.throughput * (teamSize / WI_BASE.teamSize);
+  if (teamSize > WI_BASE.teamSize) throughput *= (1 - 0.015 * (teamSize - WI_BASE.teamSize));
+  if (teamSize < WI_BASE.teamSize) throughput *= (1 - 0.025 * (WI_BASE.teamSize - teamSize));
+
+  let cycleTime = WI_BASE.cycleTime + 0.1 * (teamSize - WI_BASE.teamSize);
+  cycleTime = Math.max(2.5, cycleTime);
+
+  let remaining = WI_BASE.remaining + scopeDelta;
+  let scopeAddTotal = 0;
+  let extraDelayDays = 0;
+
+  for (const [rId] of activeRisks) {
+    const r = WI_RISK_DEF[rId];
+    if (!r) continue;
+    if (r.delaySprints)   extraDelayDays += r.delaySprints * 14;
+    if (r.throughputMult) throughput *= r.throughputMult;
+    if (r.teamPenaltyFTE) throughput *= Math.max(0.3, (teamSize - r.teamPenaltyFTE) / teamSize);
+    if (r.scopeAdd)       scopeAddTotal += r.scopeAdd;
+  }
+
+  remaining = Math.max(0, remaining + scopeAddTotal);
+  throughput = Math.max(10, Math.round(throughput));
+
+  const daysNeeded = (remaining / throughput) * 14 + extraDelayDays;
+  const today = new Date('2026-03-10');
+  const delivDate = new Date(today.getTime() + daysNeeded * 86400000);
+  const deltaDays = Math.round((delivDate - WI_BASE.piEndDate) / 86400000);
+
+  let pred = WI_BASE.predictability + (teamSize - WI_BASE.teamSize) * 1.5
+    - Math.abs(scopeDelta) * 0.04 - activeRisks.size * 4
+    - (scopeAddTotal > 0 ? 6 : 0);
+  pred = Math.min(99, Math.max(18, Math.round(pred)));
+
+  return {
+    teamSize, throughput, cycleTime: cycleTime.toFixed(1),
+    remaining, totalScope: WI_BASE.totalScope + scopeDelta + scopeAddTotal,
+    delivDate, deltaDays, predictability: pred, scopeAddTotal,
+  };
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function setDeltaCell(scnId, deltaId, scnVal, curBase, suffix='', higherBetter=true) {
+  document.getElementById(scnId).textContent = scnVal + suffix;
+  const diff = parseFloat(scnVal) - curBase;
+  const dEl  = document.getElementById(deltaId);
+  if (Math.abs(diff) < 0.05) { dEl.textContent = '—'; dEl.className = 'wi-delta d-same'; return; }
+  const better = higherBetter ? diff > 0 : diff < 0;
+  const sign = diff > 0 ? '+' : '';
+  const fmtDiff = Number.isInteger(diff) ? diff : diff.toFixed(1);
+  dEl.textContent = sign + fmtDiff + suffix;
+  dEl.className = 'wi-delta ' + (better ? 'd-better' : 'd-worse');
+}
+
+function updateComparison(s) {
+  // Team size
+  const tsEl = document.getElementById('wdTeamSize');
+  const tsDiff = s.teamSize - WI_BASE.teamSize;
+  document.getElementById('wcTeamSize').textContent = s.teamSize + ' eng';
+  tsEl.textContent = tsDiff === 0 ? '—' : (tsDiff > 0 ? '+' : '') + tsDiff;
+  tsEl.className = 'wi-delta ' + (tsDiff > 0 ? 'd-better' : tsDiff < 0 ? 'd-worse' : 'd-same');
+
+  // Throughput
+  setDeltaCell('wcThroughput', 'wdThroughput', s.throughput, WI_BASE.throughput, ' pts', true);
+
+  // Scope
+  const scDiff = s.totalScope - WI_BASE.totalScope;
+  document.getElementById('wcScope').textContent = s.totalScope + ' pts';
+  const scEl = document.getElementById('wdScope');
+  scEl.textContent = scDiff === 0 ? '—' : (scDiff > 0 ? '+' : '') + scDiff + ' pts';
+  scEl.className = 'wi-delta ' + (scDiff > 0 ? 'd-worse' : scDiff < 0 ? 'd-better' : 'd-same');
+
+  // Delivery date
+  document.getElementById('wcDelivery').textContent = fmtDate(s.delivDate);
+  const dEl = document.getElementById('wdDelivery');
+  dEl.textContent = s.deltaDays === 0 ? '—' : (s.deltaDays > 0 ? '+' : '') + s.deltaDays + 'd';
+  dEl.className = 'wi-delta ' + (s.deltaDays > 0 ? 'd-worse' : s.deltaDays < 0 ? 'd-better' : 'd-same');
+
+  // Cycle time (lower = better)
+  setDeltaCell('wcCycleTime', 'wdCycleTime', s.cycleTime, WI_BASE.cycleTime, 'd', false);
+
+  // Predictability
+  setDeltaCell('wcPredictability', 'wdPredictability', s.predictability, WI_BASE.predictability, '%', true);
+}
+
+// Scenario Burnup Chart
+let wiChart = null;
+
+function buildWIChart() {
+  const ctx = document.getElementById('wiScenarioChart').getContext('2d');
+  const labels = ['26.01','26.02','26.03','26.04','26.05','26.06','26.07','26.08','26.09'];
+  const actual       = [0, 60, 128, 212, 283, 341, null, null, null];
+  const currentPlan  = [null, null, null, null, null, 341, 395, 432, null];
+  const scopeLine    = new Array(9).fill(432);
+
+  wiChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label:'Scope Target', data: scopeLine, borderColor:'rgba(255,255,255,.18)', borderWidth:1, borderDash:[5,4], pointRadius:0, fill:false, tension:0 },
+        { label:'Actual', data: actual, borderColor:'#0052CC', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#0052CC', fill:false, tension:.35, spanGaps:false },
+        { label:'Current Plan', data: currentPlan, borderColor:'rgba(255,255,255,.35)', borderWidth:1.5, borderDash:[5,3], pointRadius:0, fill:false, tension:.3, spanGaps:false },
+        { label:'Scenario', data: [...currentPlan], borderColor:'#36B37E', borderWidth:2.5, pointRadius:3, pointBackgroundColor:'#36B37E', fill:false, tension:.35, spanGaps:false },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { mode:'index', intersect:false, callbacks:{ label: c => `${c.dataset.label}: ${c.raw ?? '—'} pts` } },
+      },
+      scales: {
+        x: { grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'rgba(255,255,255,.38)',font:{size:10}} },
+        y: { grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'rgba(255,255,255,.38)',font:{size:10}},
+          min: 0, max: 580,
+          title:{display:true,text:'Points Delivered',font:{size:9},color:'rgba(255,255,255,.28)'} },
+      },
+      animation: { duration: 600, easing: 'easeOutQuart' },
+    },
+  });
+}
+
+function updateWIChart(s) {
+  if (!wiChart) return;
+  const totalScope = s.totalScope;
+  const sprintPts  = s.throughput;
+
+  // Rebuild scenario forecast from sprint 26.06 (idx 5, delivered=341)
+  let delivered = 341;
+  const scenarioData = [null, null, null, null, null, 341];
+
+  // Count delay sprints from active risks
+  let delaySprints = 0;
+  for (const [rId] of wiState.activeRisks) {
+    delaySprints += WI_RISK_DEF[rId]?.delaySprints || 0;
+  }
+  const delayRounded = Math.round(delaySprints);
+
+  for (let i = 1; i <= 3; i++) {
+    if (i <= delayRounded) {
+      scenarioData.push(delivered); // stall during delay
+    } else {
+      delivered = Math.min(totalScope, delivered + sprintPts);
+      scenarioData.push(Math.round(delivered));
+    }
+  }
+
+  // Update scope ceiling and scenario datasets
+  wiChart.data.datasets[0].data = new Array(9).fill(totalScope);
+  wiChart.data.datasets[3].data = scenarioData;
+
+  const scenarioEnd = scenarioData[scenarioData.length - 1] || 0;
+  const color = scenarioEnd >= Math.min(totalScope, 432) ? '#36B37E' : '#FF7452';
+  wiChart.data.datasets[3].borderColor = color;
+  wiChart.data.datasets[3].pointBackgroundColor = color;
+
+  // Update legend dot color
+  const legDot = document.getElementById('wiLegendScn');
+  if (legDot) legDot.style.background = color;
+
+  wiChart.update();
+}
+
+function updateWhatIf() {
+  wiState.teamSize  = parseInt(document.getElementById('wiTeamSlider').value);
+  wiState.scopeDelta = parseInt(document.getElementById('wiScopeSlider').value);
+
+  const signStr = wiState.scopeDelta >= 0 ? '+' : '';
+  document.getElementById('wiTeamDisplay').innerHTML =
+    `${wiState.teamSize} <span style="font-size:16px;font-weight:500;opacity:.55">engineers</span>`;
+  document.getElementById('wiScopeDisplay').innerHTML =
+    `${signStr}${wiState.scopeDelta} <span style="font-size:16px;font-weight:500;opacity:.55">pts</span>`;
+  document.getElementById('wiScopeTotal').textContent  = (432 + wiState.scopeDelta) + ' pts';
+  document.getElementById('wiScopeRemain').textContent = Math.max(0, 91 + wiState.scopeDelta) + ' pts';
+  document.getElementById('wiRiskCount').textContent   = wiState.activeRisks.size + ' risk' + (wiState.activeRisks.size !== 1 ? 's' : '') + ' active';
+
+  const s = calcWI();
+  updateComparison(s);
+  updateWIChart(s);
+}
+
+function toggleRisk(rId, btn, activeClass) {
+  if (wiState.activeRisks.has(rId)) {
+    wiState.activeRisks.delete(rId);
+    btn.classList.remove(activeClass);
+  } else {
+    wiState.activeRisks.set(rId, activeClass);
+    btn.classList.add(activeClass);
+  }
+  updateWhatIf();
+}
+
+function resetWhatIf() {
+  wiState.teamSize  = 6; wiState.scopeDelta = 0;
+  wiState.activeRisks.clear();
+  document.getElementById('wiTeamSlider').value  = 6;
+  document.getElementById('wiScopeSlider').value = 0;
+  ['wiRiskR1','wiRiskR2','wiRiskR3','wiRiskR4'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = el.className.replace(/active-\w+/g, '').trim();
+  });
+  updateWhatIf();
+}
+
+buildWIChart();
+updateWhatIf();
+</script>
+</body>
+</html>
